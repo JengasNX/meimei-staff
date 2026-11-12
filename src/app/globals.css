@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── MEIMEI design tokens (единый стиль с meimei-website) ── */
+  --color-night: #080b12; /* фон страницы */
+  --color-abyss: #0d1320; /* вторичный фон */
+  --color-surface: #151e2b; /* карточки */
+  --color-edge: #223046; /* границы */
+  --color-accent: #54a8ff; /* основной акцент */
+  --color-accent-soft: #a4d5ff; /* вторичный акцент */
+  --color-frost: #f4f7fc; /* текст основной */
+  --color-mist: #929eaf; /* текст вторичный */
+  --color-leaf: #65dc91; /* успех */
+  --color-neon: #39ff72; /* особый */
+  --color-amber: #ffc861; /* предупреждения */
+  --color-rose: #ff6b81; /* ошибки / выговоры */
+
+  --font-display: var(--font-unbounded), system-ui, sans-serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+}
+
+/* ── Base ─────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+  overflow-x: clip;
+}
+
+body {
+  background-color: var(--color-night);
+  color: var(--color-frost);
+  font-family: var(--font-sans);
+  overflow-x: clip;
+}
+
+::selection {
+  background: rgba(84, 168, 255, 0.35);
+  color: #fff;
+}
+
+/* ── Компоненты панели ────────────────────────────────── */
+@utility btn {
+  @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl
+    px-4 py-2.5 text-sm font-semibold transition
+    disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+@utility badge {
+  @apply inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-edge bg-surface;
+  }
+
+  .btn-primary {
+    @apply btn bg-accent text-night hover:bg-accent-soft;
+  }
+
+  .btn-ghost {
+    @apply btn border border-edge text-frost hover:border-accent hover:text-accent;
+  }
+
+  .btn-danger {
+    @apply btn border border-rose/40 text-rose hover:bg-rose/10;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-edge bg-abyss px-4 py-2.5 text-sm text-frost
+      placeholder:text-mist/50 outline-none transition
+      focus:border-accent focus:ring-2 focus:ring-accent/25;
+  }
+
+  .label {
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-mist;
+  }
+
+  .badge-level {
+    @apply badge border-accent/40 bg-accent/10 text-accent;
+  }
+
+  .badge-ok {
+    @apply badge border-leaf/40 bg-leaf/10 text-leaf;
+  }
+
+  .badge-warn {
+    @apply badge border-amber/40 bg-amber/10 text-amber;
+  }
+
+  .badge-bad {
+    @apply badge border-rose/40 bg-rose/10 text-rose;
+  }
+
+  .badge-muted {
+    @apply badge border-edge bg-abyss text-mist;
+  }
+
+  .table-base {
+    @apply w-full text-left text-sm;
+  }
+
+  .table-base th {
+    @apply border-b border-edge px-4 py-3 text-xs font-semibold uppercase tracking-wider text-mist;
+  }
+
+  .table-base td {
+    @apply border-b border-edge/60 px-4 py-3 align-middle text-frost;
+  }
+
+  .link-accent {
+    @apply text-accent transition hover:text-accent-soft;
+  }
+
+  .section-title {
+    @apply font-display text-sm font-semibold uppercase tracking-[0.2em] text-mist;
+  }
+}
