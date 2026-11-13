@@ -3,26 +3,33 @@
 Публичная часть (состав, новости, заявки на вступление) + закрытый личный
 кабинет (логин/пароль, инвайт-коды, рейтинг, дисциплина, аудит).
 
+**Живой сайт:** https://meimei-staff.netlify.app
+
 ## Стек
 
 - Next.js 16 (App Router, Server Actions) + React 19 + TypeScript
 - Tailwind CSS v4 (токены в `src/app/globals.css`)
-- PostgreSQL (Supabase) + Drizzle ORM
+- PostgreSQL (Netlify Database на базе Neon) + Drizzle ORM
 - Сессии: HS256 JWT в httpOnly-cookie (`jose`), пароли: scrypt (`node:crypto`)
 - Валидация: zod · Иконки: Lucide
+- Хостинг: Netlify (`netlify.toml`, плагин `@netlify/plugin-nextjs`)
 
 ## Запуск
 
 ```bash
 npm install
-copy .env.example .env.local     # Windows
-# заполни DATABASE_URL и AUTH_SECRET
-npm run db:migrate               # применить migrations/*.sql
-npm run db:seed                  # основатель + демо-состав (идемпотентно)
 npm run dev                      # http://localhost:3000
 ```
 
-Другие скрипты: `db:migrate:status`, `db:generate` (после правок `src/db/schema.ts`),
+Локальная БД стартует вместе с `netlify dev` и управляется Netlify:
+
+```bash
+netlify dev                      # dev-сервер + локальная БД
+netlify db migrations apply      # применить netlify/database/migrations локально
+netlify db connect --query "SELECT username FROM users"
+```
+
+Другие скрипты: `db:generate` (после правок `src/db/schema.ts`),
 `lint`, `typecheck`, `build`, `start`.
 
 ## Структура
@@ -36,8 +43,7 @@ src/lib/rbac/          — уровни 1–7, каталог прав, чист
 src/lib/auth/          — пароли (scrypt), сессии (JWT)
 src/server/            — requirePageAuth/requireActionAuth, аудит, rate-limit
 src/db/                — Drizzle схема и клиент
-migrations/            — SQL: 0000 (drizzle-kit generate) + 0001_integrity.sql (триггеры)
-scripts/               — migrate.ts, seed.ts
+netlify/database/migrations/ — SQL-миграции: схема, триггеры целостности, сид
 ```
 
 ## Модель доступа
@@ -59,16 +65,25 @@ scripts/               — migrate.ts, seed.ts
 только ниже своего; неактивный аккаунт ничего не может; каждое действие — запись
 в append-only аудит.
 
-## Что показать перед запуском
+## База данных
 
-1. `.env.local` — DATABASE_URL (Supabase pooled), AUTH_SECRET (`openssl rand -base64 48`), NEXT_PUBLIC_APP_URL.
-2. `npm run db:migrate` → `npm run db:seed` — сохрани напечатанный пароль основателя.
-3. Войти `/login` под `founder`, сменить пароль, создать реальный состав через инвайты.
-4. В `src/lib/config/site.ts` — ссылки Roblox/Discord/Telegram (пока пустые заглушки).
+Netlify Database создаётся автоматически при деплое (пакет `@netlify/database`).
+Миграции из `netlify/database/migrations/` применяются при каждом деплое:
 
-## Деплой (Vercel)
+1. схема (10 таблиц, enum'ы, индексы) — сгенерирована drizzle-kit;
+2. триггеры целостности (append-only аудит, ledger-проверка рейтинга, updated_at);
+3. сид: основатель `founder` + демо-состав (идемпотентно — только если `users` пуста).
 
-1. Импортировать репозиторий в Vercel.
-2. Environment Variables: DATABASE_URL, DIRECT_URL, AUTH_SECRET, NEXT_PUBLIC_APP_URL.
-3. Миграции применить локально (`npm run db:migrate` с DATABASE_URL) — схема одинаковая.
-4. Первый вход: `founder` + пароль из сида.
+Клиент читает `DATABASE_URL`, а в окружении Netlify — `NETLIFY_DB_URL` автоматически.
+
+## Деплой
+
+```bash
+netlify deploy --build --prod
+```
+
+Переменные окружения Netlify: `AUTH_SECRET`, `NEXT_PUBLIC_APP_URL`
+(`netlify env:set …`). Строка БД подставляется платформой сама.
+
+Первый вход: `/login` под `founder` (пароль задаётся при сида) → сразу сменить
+пароль в профиле → создать реальный состав через инвайты.
